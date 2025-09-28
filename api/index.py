@@ -1,11 +1,10 @@
-# api/index.py - Vercel entry point
-import os, json, socket
-from datetime import datetime
-
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from supabase import create_client
-from mangum import Mangum
+import os
+import json
+import socket
+from datetime import datetime
 
 # -------- Config --------
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -145,5 +144,5 @@ async def raw_info(request: Request):
         "timestamp": datetime.utcnow().isoformat()
     }, indent=2))
 
-# Vercel handler - this is the key for Vercel deployment
-handler = Mangum(app)
+# Export the FastAPI app for Vercel
+# Vercel should automatically detect this as a FastAPI app
