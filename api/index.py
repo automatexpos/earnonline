@@ -1,11 +1,11 @@
 # api/index.py - Vercel entry point
 import os, json, socket
 from datetime import datetime
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from supabase import create_client
+from mangum import Mangum
 
 # -------- Config --------
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -20,20 +20,7 @@ if not SUPABASE_KEY:
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    try:
-        # Try to query the visits table to see if it exists
-        supabase.table("visits").select("count", count="exact").limit(1).execute()
-        print("✅ Connected to Supabase successfully")
-    except Exception as e:
-        print(f"⚠️  Supabase connection issue: {e}")
-    yield
-    # Shutdown
-    print("Shutting down...")
-
-app = FastAPI(lifespan=lifespan, title="IP Detection Service")
+app = FastAPI(title="IP Detection Service")
 
 def detect_ip(request: Request):
     xff = request.headers.get("x-forwarded-for")
@@ -158,5 +145,5 @@ async def raw_info(request: Request):
         "timestamp": datetime.utcnow().isoformat()
     }, indent=2))
 
-# Vercel handler
-handler = app
+# Vercel handler - this is the key for Vercel deployment
+handler = Mangum(app)
